@@ -3,7 +3,23 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { CheckCircle } from "lucide-react";
+const CheckCircleIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="48"
+    height="48"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#F5F5F5"
+    strokeWidth="1"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ marginBottom: "1.5rem" }}
+  >
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="9 12 11 14 15 10" />
+  </svg>
+);
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -120,9 +136,7 @@ function ResetPasswordInner() {
       <div style={styles.page} data-testid="success-screen">
         <div style={styles.card}>
           <Logo />
-          <CheckCircle
-            style={{ width: 48, height: 48, color: "#F5F5F5", marginBottom: "1.5rem", strokeWidth: 1 }}
-          />
+          <CheckCircleIcon />
           <h2 style={styles.title}>Password Updated</h2>
           <p style={{ ...styles.mutedText, marginBottom: "3rem" }}>
             You can now sign in with your new password.
