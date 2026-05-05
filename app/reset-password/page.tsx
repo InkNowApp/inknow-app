@@ -24,6 +24,13 @@ const CheckCircleIcon = () => (
   </svg>
 );
 
+const Logo = () => (
+  <div style={{ display:"flex", justifyContent:"center", marginBottom:"3rem" }}>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src="/inknow-logo.png" alt="InkNow" style={{ height:"9rem", width:"auto", objectFit:"contain" }} />
+  </div>
+);
+
 function ResetPasswordInner() {
   const searchParams = useSearchParams();
   const [appState, setAppState] = useState<"loading"|"invalid"|"form"|"success">("loading");
@@ -76,21 +83,13 @@ function ResetPasswordInner() {
     } finally { setIsSubmitting(false); }
   };
 
-  const Logo = () => (
-    <div style={{ display:"flex", justifyContent:"center", marginBottom:"3rem" }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/inknow-logo.png" alt="InkNow" style={{ height:"9rem", width:"auto", objectFit:"contain" }} />
-    </div>
-  );
-
   if (appState==="loading") return <div style={s.page}><Logo /><div style={s.pulse}/></div>;
   if (appState==="invalid") return <div style={s.page}><Logo /><p style={s.muted}>Invalid or expired reset link.</p></div>;
   if (appState==="success") return (
     <div style={s.page}><div style={s.card}>
       <Logo /><CheckCircleIcon />
       <h2 style={s.title}>Password Updated</h2>
-      <p style={{...s.muted,marginBottom:"3rem"}}>You can now sign in with your new password.</p>
-      <button onClick={()=>(window.location.href="/login")} style={s.btn}>Return to Login</button>
+      <p style={s.muted}>You can now sign in with your new password.</p>
     </div></div>
   );
 
