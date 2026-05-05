@@ -4,12 +4,18 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+let _supabase: SupabaseClient | null = null;
+function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  return _supabase;
+}
 
 const CheckCircleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#F5F5F5" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "1.5rem" }}>
@@ -31,14 +37,14 @@ function ResetPasswordInner() {
       try {
         const code = searchParams.get("code");
         const hash = new URLSearchParams(window.location.hash.replace("#",""));
-        const at = hash.get("access_token");
-        const rt = hash.get("refresh_token");
+        const accessToken = hash.get("access_token");
+        const refreshToken = hash.get("refresh_token");
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          const { error } = await getSupabase().auth.exchangeCodeForSession(code);
           if (error) throw error;
           setAppState("form");
-        } else if (at && rt) {
-          const { error } = await supabase.auth.setSession({ access_token: at, refresh_token: rt });
+        } else if (accessToken && refreshToken) {
+          const { error } = await getSupabase().auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
           if (error) throw error;
           setAppState("form");
         } else { setAppState("invalid"); }
@@ -61,9 +67,9 @@ function ResetPasswordInner() {
     if (err) { setError(err); return; }
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      await supabase.auth.signOut();
+      const { error: updateError } = await getSupabase().auth.updateUser({ password: newPassword });
+      if (updateError) throw updateError;
+      await getSupabase().auth.signOut();
       setAppState("success");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "An unexpected error occurred.");
@@ -72,6 +78,7 @@ function ResetPasswordInner() {
 
   const Logo = () => (
     <div style={{ display:"flex", justifyContent:"center", marginBottom:"3rem" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/inknow-logo.png" alt="InkNow" style={{ height:"9rem", width:"auto", objectFit:"contain" }} />
     </div>
   );
@@ -82,8 +89,8 @@ function ResetPasswordInner() {
     <div style={s.page}><div style={s.card}>
       <Logo /><CheckCircleIcon />
       <h2 style={s.title}>Password Updated</h2>
-      <p style={{...s.muted, marginBottom:"3rem"}}>You can now sign in with your new password.</p>
-      <button onClick={()=>(window.location.href="/login")} style={s.btn} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.textDecorationColor="#D4AF37";(e.currentTarget as HTMLButtonElement).style.textDecoration="underline";}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.textDecoration="none";}}>Return to Login</button>
+      <p style={{...s.muted,marginBottom:"3rem"}}>You can now sign in with your new password.</p>
+      <button onClick={()=>(window.location.href="/login")} style={s.btn}>Return to Login</button>
     </div></div>
   );
 
@@ -98,14 +105,14 @@ function ResetPasswordInner() {
         <div style={{display:"flex",flexDirection:"column",gap:"0.5rem"}}>
           <input type="password" placeholder="New Password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} required style={s.input} onFocus={e=>((e.currentTarget as HTMLInputElement).style.boxShadow="0 0 0 1px rgba(212,175,55,0.5)")} onBlur={e=>((e.currentTarget as HTMLInputElement).style.boxShadow="none")} />
           <div style={{display:"flex",flexDirection:"column",gap:"0.25rem",padding:"0 0.25rem"}}>
-            <p style={{...s.req, color:newPassword.length>=8?"rgba(245,245,245,0.5)":"#666"}}>• 8+ characters</p>
-            <p style={{...s.req, color:/[A-Z]/.test(newPassword)?"rgba(245,245,245,0.5)":"#666"}}>• One uppercase letter</p>
-            <p style={{...s.req, color:/\d/.test(newPassword)?"rgba(245,245,245,0.5)":"#666"}}>• One number</p>
+            <p style={{...s.req,color:newPassword.length>=8?"rgba(245,245,245,0.5)":"#666"}}>• 8+ characters</p>
+            <p style={{...s.req,color:/[A-Z]/.test(newPassword)?"rgba(245,245,245,0.5)":"#666"}}>• One uppercase letter</p>
+            <p style={{...s.req,color:/\d/.test(newPassword)?"rgba(245,245,245,0.5)":"#666"}}>• One number</p>
           </div>
         </div>
         <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} required style={s.input} onFocus={e=>((e.currentTarget as HTMLInputElement).style.boxShadow="0 0 0 1px rgba(212,175,55,0.5)")} onBlur={e=>((e.currentTarget as HTMLInputElement).style.boxShadow="none")} />
         {error && <p style={s.err}>{error}</p>}
-        <button type="submit" disabled={isSubmitting} style={{...s.btn,opacity:isSubmitting?0.5:1,marginTop:"0.5rem"}} onMouseEnter={e=>{if(!isSubmitting){(e.currentTarget as HTMLButtonElement).style.textDecoration="underline";(e.currentTarget as HTMLButtonElement).style.textDecorationColor="#D4AF37";}}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.textDecoration="none";}}>
+        <button type="submit" disabled={isSubmitting} style={{...s.btn,opacity:isSubmitting?0.5:1,marginTop:"0.5rem"}}>
           {isSubmitting?"Updating...":"Update Password"}
         </button>
       </form>
