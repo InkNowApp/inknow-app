@@ -1,0 +1,24 @@
+{
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/b/:name",
+      "destination": "https://inknow-production.up.railway.app/b/:name"
+    },
+    {
+      "source": "/invite/:id",
+      "destination": "https://inknow-production.up.railway.app/invite/:id"
+    },
+    {
+      "source": "/join/:code",
+      "destination": "https://inknow-production.up.railway.app/join/:code"
+    }
+  ]
+}
