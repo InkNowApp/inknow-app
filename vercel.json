@@ -9,6 +9,10 @@
   ],
   "rewrites": [
     {
+      "source": "/download",
+      "destination": "https://inknow-production.up.railway.app/download"
+    },
+    {
       "source": "/p/:postId",
       "destination": "https://inknow-production.up.railway.app/p/:postId"
     },
